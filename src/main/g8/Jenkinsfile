@@ -48,9 +48,9 @@ node {
     }
 
 stage("Static Update"){
-//        sh """
-//            ${sbtFolder}/sbt static:stackSetup
-//        """
+        sh """
+            ${sbtFolder}/sbt static:stackSetup
+        """
     }
 
     stage("PreProd Setup"){

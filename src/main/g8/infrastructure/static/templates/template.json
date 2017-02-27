@@ -28,7 +28,9 @@
                     ]
                 },
                 "Parameters": {
-                    "ApplicationName": {"Ref": "ApplicationName"}
+                    "ApplicationName": {
+                        "Fn::Sub": ["$"$"${appName}-service", {"appName"   : {"Ref": "ApplicationName"}}]
+                    }
                 }
             }
         }
