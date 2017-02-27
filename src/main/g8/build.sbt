@@ -36,7 +36,11 @@ publishTo := {
 }
 
 libraryDependencies ++=
-  Seq(cache,ws,filters) ++
+  Seq(
+    cache,
+    ws,
+    filters,
+    specs2 % Test) ++
   ProjectDependencies ++
   UnitTestDependencies ++
   IntTestDependencies

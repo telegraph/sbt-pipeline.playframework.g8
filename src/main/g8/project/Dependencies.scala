@@ -7,7 +7,8 @@ object Dependencies {
   private lazy val Scalatest = "org.scalatest" %% "scalatest" % "3.0.1"
 
   lazy val ProjectDependencies = Seq(
-    "io.swagger" %% "swagger-play2" % "1.5.3"
+    "io.swagger" %% "swagger-play2" % "1.5.3",
+    "net.logstash.logback" % "logstash-logback-encoder" % "4.0"
   )
 
   lazy val UnitTestDependencies = Seq(
@@ -18,7 +19,7 @@ object Dependencies {
   lazy val IntTestDependencies = Seq(
     JUnit     % IntegrationTest,
     Scalatest % IntegrationTest,
-
+    
     // Cucumber Runner
     "com.waioeka.sbt"  %% "cucumber-runner"       % "0.0.5"  % IntegrationTest,
 
