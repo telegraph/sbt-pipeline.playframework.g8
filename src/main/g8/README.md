@@ -1,0 +1,19 @@
+
+$name$
+-------
+
+$project_description$
+
+# $name$ Definition
+
+## Data Model
+
+|Field|Mandatory|Description|
+|:--------------:|:------------|:--------------:|
+|Example|y|this is an example|
+
+## API Endpoints
+
+You can see the endpoints at:
+- [Preprod Swagger](http://swagger-ui-preprod.api-platforms.telegraph.co.uk/?url=http://platforms-preprod.api-platforms.telegraph.co.uk/$name$/swagger.json)
+- [Prod Swagger](http://swagger-ui-prod.api-platforms.telegraph.co.uk/?url=http://platforms-prod.api-platforms.telegraph.co.uk/$name$/swagger.json)

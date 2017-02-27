@@ -1,0 +1,14 @@
+# Routes
+# This file defines all application routes (Higher priority routes first)
+# ~~~~
+
+# Home page
+GET     /health                                               controllers.Admin.health()
+GET     /$name$/health                                        controllers.Admin.health()
+GET     /$name$/admin/conf                                    controllers.Admin.conf()
+GET     /$name$/swagger.json                                  controllers.ApiHelpController.getResources
+
+# Map static resources from the /public folder to the /assets URL path
+GET     /fassets/*file               						  controllers.Assets.at(path="/public", file)
+
+    
