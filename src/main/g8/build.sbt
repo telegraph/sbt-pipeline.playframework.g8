@@ -35,6 +35,8 @@ publishTo := {
   }
 }
 
+resolvers += "mvn-artifacts" at "s3://mvn-artifacts/release"
+
 libraryDependencies ++=
   Seq(
     cache,

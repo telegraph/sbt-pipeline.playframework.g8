@@ -8,6 +8,7 @@ object Dependencies {
 
   lazy val ProjectDependencies = Seq(
     "io.swagger" %% "swagger-play2" % "1.5.3",
+    "uk.co.telegraph" %% "tmgplugin-play" % "1.0.+",
     "net.logstash.logback" % "logstash-logback-encoder" % "4.0"
   )
 

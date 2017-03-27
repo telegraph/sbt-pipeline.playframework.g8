@@ -1,6 +1,7 @@
 
 $name$
 -------
+[![Build Status](https://jenkins-prod.api-platforms.telegraph.co.uk/job/Pipeline/job/$name$/badge/icon)](https://jenkins-prod.api-platforms.telegraph.co.uk/job/Pipeline/job/$name$/)
 
 $project_description$
 
