@@ -1,9 +1,10 @@
-
 import Dependencies._
 import sbt.Keys._
 
 // give the user a nice default project!
 lazy val buildNumber = sys.env.get("BUILD_NUMBER").map( bn => s"b\$bn")
+
+resolvers += "mvn-artifacts" at "s3://mvn-artifacts/release"
 
 lazy val CommonSettings = Seq(
   name          := "$name;format="normalize"$",
@@ -20,6 +21,8 @@ lazy val root = (project in file(".")).
   settings( CommonSettings     : _* ).
   enablePlugins(PlayScala).
   settings(
+    (sourceDirectory in IntegrationTest) := (baseDirectory.value / "it"),
+    (resourceDirectories in IntegrationTest) += (baseDirectory.value / "it"),
     (stackCustomParams in DeployDev    ) += ("BuildVersion" -> version.value),
     (stackCustomParams in DeployPreProd) += ("BuildVersion" -> version.value),
     (stackCustomParams in DeployProd   ) += ("BuildVersion" -> version.value)
