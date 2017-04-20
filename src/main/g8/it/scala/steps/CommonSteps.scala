@@ -16,13 +16,13 @@ class CommonSteps extends ScalaDsl with EN with Matchers{
     resetCtx()
   }
 
-  Given("""^the service$"""){ () =>
+  Given("""^the service$"$"$"""){ () =>
     hold("request"){
       given().baseUri(UsageApiHost).port(UsageApiPort)
     }
   }
 
-  When("""^I invoke GET '(.+)'$""") { endpoint: String =>
+  When("""^I invoke GET '(.+)'$"$"$""") { endpoint: String =>
     hold("response"){
       pick[RequestSpecification]("request"){ _
         .when()
