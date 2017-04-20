@@ -14,6 +14,10 @@
             "Description": "CloudFormation Key",
             "Type"       : "String",
             "Default"    : "common/latest"
+        },
+        "AwsAccountArnList": {
+            "Description": "List of AWS Account Arns that have permission to push or pull from ECR eg. arn:aws:iam::${AccountID}:root",
+            "Type": "String"
         }
     },
     "Resources": {
@@ -28,9 +32,8 @@
                     ]
                 },
                 "Parameters": {
-                    "ApplicationName": {
-                        "Fn::Sub": ["$"$"${appName}-service", {"appName"   : {"Ref": "ApplicationName"}}]
-                    }
+                    "ApplicationName":   {"Ref": "ApplicationName"},
+                    "AwsAccountArnList": {"Ref": "AwsAccountArnList"}
                 }
             }
         }
