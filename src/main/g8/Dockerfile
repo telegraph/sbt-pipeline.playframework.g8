@@ -1,15 +1,12 @@
-
 FROM dockering/oracle-java8
 
 ARG APP_NAME
 ARG APP_VERSION
 
-ADD target/universal/\${APP_NAME}-\${APP_VERSION}.zip \${APP_NAME}-\${APP_VERSION}.zip
-RUN unzip \${APP_NAME}-\${APP_VERSION}.zip
+ADD target/${APP_NAME}-${APP_VERSION}.jar app.jar
 
-ENV APP_NAME=\${APP_NAME}
-ENV APP_VERSION=\${APP_VERSION}
-ENV API_VERSION=\${APP_VERSION}
+ENV APP_NAME=${APP_NAME}
+ENV API_VERSION=${APP_VERSION}
 
 EXPOSE 9000
-ENTRYPOINT ["sh", "-c", "\${APP_NAME}-\${APP_VERSION}/bin/\${APP_NAME} -Dconfig.file=./\${APP_NAME}-\${APP_VERSION}/conf/\${ENVIRONMENT}.conf"]
+ENTRYPOINT ["sh", "-c", "java -Djava.security.egd=file:/dev/./urandom -Dconfig.resource=application.${ENVIRONMENT}.conf -jar /app.jar"]
