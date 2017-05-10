@@ -4,15 +4,24 @@ import sbt.Keys._
 // give the user a nice default project!
 lazy val buildNumber = sys.env.get("BUILD_NUMBER").map( bn => s"b\$bn")
 
-resolvers += "mvn-artifacts" at "s3://mvn-artifacts/release"
-
 lazy val CommonSettings = Seq(
-  name          := "$name;format="normalize"$",
-  organization  := "$organization$",
-  version       := "1.0.0-" + buildNumber.getOrElse("dev"),
-  scalaVersion  := "$scala_version$",
-  isSnapshot    := buildNumber.isEmpty,
-  scalacOptions += "-target:jvm-1.8"
+  name              := "$name;format="normalize"$",
+  organization      := "$organization$",
+  version           := "1.0.0-" + buildNumber.getOrElse("SNAPSHOT"),
+  scalaVersion      := "$scala_version$",
+  isSnapshot        := buildNumber.isEmpty,
+  scalacOptions     ++= Seq(
+    "-target:jvm-1.8",
+    "-encoding", "UTF-8",
+    "-feature"
+  ),
+
+  // Test & Coverage
+  coverageExcludedPackages := ".*Reverse.*;.*Routes.*",
+  concurrentRestrictions                := Seq(
+    Tags.limit(Tags.Test, 1)
+  ),
+  publishMavenStyle := false
 )
 
 lazy val root = (project in file(".")).
@@ -20,32 +29,43 @@ lazy val root = (project in file(".")).
   settings( Defaults.itSettings: _* ).
   settings( CommonSettings     : _* ).
   enablePlugins(PlayScala).
+  disablePlugins(PlayLayoutPlugin).
   settings(
-    (sourceDirectory in IntegrationTest) := (baseDirectory.value / "it"),
-    (resourceDirectories in IntegrationTest) += (baseDirectory.value / "it"),
+    PlayKeys.playMonitoredFiles ++= (sourceDirectories in (Compile, TwirlKeys.compileTemplates)).value,
+
+    // ITest Config
+    (testFrameworks    in IntegrationTest) += new TestFramework("com.waioeka.sbt.runner.CucumberFramework"),
+    (wiremockVerbose   in IntegrationTest) := true,
+    (wiremockRootDir   in IntegrationTest) := baseDirectory.value / "src"/ "it" / "resources" / "wiremock",
+    (wiremockHttpPort  in IntegrationTest) := 19999,
+
+    // Deployment
     (stackCustomParams in DeployDev    ) += ("BuildVersion" -> version.value),
     (stackCustomParams in DeployPreProd) += ("BuildVersion" -> version.value),
-    (stackCustomParams in DeployProd   ) += ("BuildVersion" -> version.value)
+    (stackCustomParams in DeployProd   ) += ("BuildVersion" -> version.value),
+
+    // Assembly
+    mainClass             in assembly     := Some("play.core.server.ProdServerStart"),
+    target                in assembly     := file("target"),
+    assemblyJarName       in assembly     := s"\${name.value}-\${version.value}.jar",
+    fullClasspath         in assembly     += Attributed.blank(PlayKeys.playPackageAssets.value),
+    assemblyMergeStrategy in assembly     := {
+      case "application.conf"             => MergeStrategy.concat
+      case x if x.endsWith("io.netty.versions.properties") => MergeStrategy.first
+      case x =>
+        val oldStrategy = (assemblyMergeStrategy in assembly).value
+        oldStrategy(x)
+    },
+    test                  in assembly     := {},
+
+    ServiceDependencies
   )
 
-(testFrameworks in IntegrationTest) += new TestFramework("com.waioeka.sbt.runner.CucumberFramework")
-
+resolvers += "mvn-tmg-resolver" atS3 "s3://mvn-artifacts/release"
 publishTo := {
   if( isSnapshot.value ){
-    Some("mvn-artifacts" at "s3://mvn-artifacts/snapshot")
+    Some("mvn-tmg-publisher" at "s3://mvn-artifacts/snapshot")
   }else{
-    Some("mvn-artifacts" at "s3://mvn-artifacts/release")
+    Some("mvn-tmg-publisher" at "s3://mvn-artifacts/release")
   }
 }
-
-resolvers += "mvn-artifacts" at "s3://mvn-artifacts/release"
-
-libraryDependencies ++=
-  Seq(
-    cache,
-    ws,
-    filters,
-    specs2 % Test) ++
-  ProjectDependencies ++
-  UnitTestDependencies ++
-  IntTestDependencies

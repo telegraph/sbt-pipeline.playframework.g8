@@ -1,3 +1,15 @@
+
+def sendNotification( action, token, channel, shellAction ){
+  try {
+    slackSend message: "${action} Started - ${env.JOB_NAME} ${env.BUILD_NUMBER} (<${env.BUILD_URL}|Open>)", token: token, channel: channel, teamDomain: "telegraph", baseUrl: "https://hooks.slack.com/services/", color: "warning"
+    sh shellAction
+  } catch (error) {
+    slackSend message: "${action} Failed - ${env.JOB_NAME} ${env.BUILD_NUMBER} (<${env.BUILD_URL}|Open>)", token: token, channel: channel, teamDomain: "telegraph", baseUrl: "https://hooks.slack.com/services/", color: "danger"
+    throw error
+  }
+  slackSend message: "${action} Finished - ${env.JOB_NAME} ${env.BUILD_NUMBER} (<${env.BUILD_URL}|Open>)", token: token, channel: channel, teamDomain: "telegraph", baseUrl: "https://hooks.slack.com/services/", color: "good"
+}
+
 node {
 
     def sbtFolder        = "${tool name: 'sbt-0.13.13', type: 'org.jvnet.hudson.plugins.SbtPluginBuilder$SbtInstallation'}/bin"
@@ -9,28 +21,30 @@ node {
     stage("Checkout"){
         echo "git checkout"
         checkout changelog: false, poll: false, scm: [
-                $class: 'GitSCM',
-                branches: [[
-                                   name: 'master'
-                           ]],
-                doGenerateSubmoduleConfigurations: false,
-                extensions: [[
-                                     $class: 'WipeWorkspace'
-                             ], [
-                                     $class: 'CleanBeforeCheckout'
-                             ]],
-                submoduleCfg: [],
-                userRemoteConfigs: [[
-                                            credentialsId: 'fe000f7c-4de6-45c7-9097-d1fba24f3cb5',
-                                            url: "git@github.com:telegraph/${projectName}.git"
-                                    ]]
+            $class: 'GitSCM',
+            branches: [[
+                name: 'master'
+            ]],
+            doGenerateSubmoduleConfigurations: false,
+            extensions: [[
+                $class: 'WipeWorkspace'
+            ], [
+                $class: 'CleanBeforeCheckout'
+            ]],
+            submoduleCfg: [],
+            userRemoteConfigs: [[
+                credentialsId: 'fe000f7c-4de6-45c7-9097-d1fba24f3cb5',
+                url: "git@github.com:telegraph/${projectName}.git"
+            ]]
         ]
     }
 
     stage("Build & Test"){
-        sh """
-            ${sbtFolder}/sbt clean test
-        """
+        sendNotification("Build", "${env.SLACK_PLATFORMS_CI}", "#platforms_ci",
+            """
+                ${sbtFolder}/sbt clean test
+            """
+        )
     }
 
     stage("Release Notes"){
