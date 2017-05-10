@@ -1,7 +1,7 @@
 
 # SBT Pipeline Playframework.g8 
 
-[![Build Status](https://jenkins-prod.api-platforms.telegraph.co.uk/job/Pipeline/job/sbt-pipeline.playframework.g8/badge/icon)](https://jenkins-prod.api-platforms.telegraph.co.uk/job/Pipeline/job/sbt-pipeline.playframework.g8/)
+[![Build Status](https://jenkins-prod.api-platforms.telegraph.co.uk/job/Pipeline/job/sbt-pipeline-playframework.g8 Pipeline/badge/icon)](https://jenkins-prod.api-platforms.telegraph.co.uk/job/Pipeline/job/sbt-pipeline-playframework.g8 Pipeline/)
 
 This project contains an SBT Template that contains the Pipeline template for all projects.
 The main objectives of this template are:
