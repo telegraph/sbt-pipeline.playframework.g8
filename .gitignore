@@ -1,6 +1,6 @@
 # Created by .ignore support plugin (hsz.mobi)
 **/target
-.idea
+.idea/*
 *.iml
 .idea_modules/
 *.class
