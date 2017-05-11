@@ -1,6 +1,6 @@
 {
     "AWSTemplateFormatVersion" : "2010-09-09",
-    "Description" : "AWS CloudFormation Sample Template Parameter_Validate: Sample template showing how to validate string and numeric parameters. This template does not create any billable AWS Resources.",
+    "Description" : "AWS CloudFormation to launch a service.",
     "Parameters" : {
         "ApplicationName": {
             "Description": "The application name",
@@ -49,27 +49,113 @@
         "VpcId": {
             "Description": "Application VPC",
             "Type"       : "String"
+        },
+        "EmailingList": {
+            "Description": "Emailing List",
+            "Type"       : "String",
+            "Default"    : "arn:aws:sns:eu-west-1:385050320367:platforms-test"
+        },
+        "DeregistrationDelay": {
+            "Description": "The amount time for Load Balancing to wait before changing the state of a deregistering target from draining to unused",
+            "Type": "String",
+            "Default": "120"
         }
     },
     "Resources" : {
-        "mySubTemplate": {
+        "ECSCluster":{
+            "Type": "Custom::StackDepdendency",
+            "Properties": {
+                "ServiceToken": { "Fn::Join": ["",[
+                    "arn:aws:lambda:", {"Ref":"AWS::Region"}, ":", {"Ref":"AWS::AccountId"}, ":function:aws-resources-stack-dependencies"
+                ]]},
+                "StackName": { "Ref": "EnvECSClusterStack" }
+            }
+        },
+        "ECSService": {
             "Type": "AWS::CloudFormation::Stack",
             "Properties": {
-                "TemplateURL": {
-                    "Fn::Sub": ["https://s3-$"$"${AWS::Region}.amazonaws.com/$"$"${bucket}/$"$"${bucketKey}/$"$"${version}/cloudformation/dynamic/template-wait.json", {
-                        "bucket"   : {"Ref": "CloudFormationBucket"},
-                        "bucketKey": {"Ref": "CloudFormationKey"},
-                        "version"  : {"Ref": "BuildVersion"}
+                "TemplateURL"  : {"Fn::Sub": ["https://s3-\${AWS::Region}.amazonaws.com/\${bucket}/\${bucketKey}/template-common-ecs-service.json", {
+                    "bucket"   : {"Ref": "CloudFormationBucket"},
+                    "bucketKey": {"Ref": "CloudFormationCommonKey"}
+                }]},
+                "Parameters": {
+                    "ApplicationName"             : {"Ref": "ApplicationName"},
+                    "DeploymentEnv"               : {"Ref": "DeploymentEnv"},
+                    "BuildImage"                  : {"Ref": "ApplicationName"},
+                    "BuildVersion"                : {"Ref": "BuildVersion"},
+                    "TaskCpuAllocation"           : {"Ref": "NotificationTaskCpuAllocation"},
+                    "TaskMemoryAllocation"        : {"Ref": "NotificationTaskMemoryAllocation"},
+                    "DesiredCount"                : {"Ref": "NotificationDesiredCount"},
+                    "DeregistrationDelay"         : {"Ref": "DeregistrationDelay"},
+
+                    "VpcId"                       : {"Ref": "VpcId"},
+                    "ECSClusterPhysicalId"        : {"Fn::GetAtt":["ECSCluster", "EnvironmentECSClusterID"]},
+                    "ECSLoadBalancerListener"     : {"Fn::GetAtt":["ECSCluster", "EnvironmentECSLoadBalancerListenerID"]},
+                    "LoadBalancerListenerPriority": "13",
+                    "ContainerPort"               : "9000",
+                    "DeploymentConfigMaxPercent"  : "200",
+                    "DeploymentConfigMinPercent"  : "50",
+                    "TaskRoleArn"                 : {"Ref":"ECSServiceTaskRole"}
+                },
+                "TimeoutInMinutes": "15"
+            },
+            "DependsOn": [
+                "ECSServiceTaskRole"
+            ]
+        },
+
+        "ECSServiceTaskRole"  :{
+            "Type": "AWS::IAM::Role",
+            "Properties":{
+                "RoleName" : {
+                    "Fn::Sub":["\${serviceName}-\${envName}-execution-role", {
+                        "serviceName": {"Ref": "ApplicationName"},
+                        "envName"    : {"Ref": "DeploymentEnv"}
                     }]
                 },
-                "Parameters":{
-                    "ApplicationName": {"Ref": "ApplicationName"},
-                    "DeploymentEnv"  : {"Ref": "DeploymentEnv"}
+                "AssumeRolePolicyDocument": {
+                    "Version" : "2012-10-17",
+                    "Statement": {
+                        "Effect": "Allow",
+                        "Principal": {
+                            "Service": "ecs-tasks.amazonaws.com"
+                        },
+                        "Action": "sts:AssumeRole"
+                    }
                 }
             }
         },
-        "myWaitHandle" : {
-            "Type" : "AWS::CloudFormation::WaitConditionHandle"
+        "ECSServiceErrorMetric": {
+            "Type": "AWS::Logs::MetricFilter",
+            "Properties": {
+                "FilterPattern"         : "INFO",
+                "LogGroupName"          : {"Fn::GetAtt":["ECSService","Outputs.LogGroupName"]},
+                "MetricTransformations" : [{
+                    "MetricValue"       : "1",
+                    "MetricNamespace"   : {"Ref":"ApplicationName"},
+                    "MetricName"        : "error"
+                }]
+            },
+            "DependsOn":["ECSService"]
+        },
+        "ECSServiceAlarmError":{
+            "Type"       : "AWS::CloudWatch::Alarm",
+            "Properties" : {
+                "AlarmActions"       : [{"Ref":"EmailingList"}],
+                "AlarmDescription"   : "Send error msg to the slack channel",
+                "AlarmName"          : { "Fn::Sub":["\${serviceName}-\${envName}-alarm", {
+                    "serviceName": {"Ref": "ApplicationName"},
+                    "envName"    : {"Ref": "DeploymentEnv"}
+                }]},
+                "ComparisonOperator" : "GreaterThanThreshold",
+                "EvaluationPeriods"  : 1,
+                "MetricName"         : "error",
+                "Namespace"          : {"Ref":"ApplicationName"},
+                "Period"             : 60,
+                "Statistic"          : "Sum",
+                "Threshold"          : 1
+            },
+            "DependsOn":["ECSServiceErrorMetric"]
         }
     },
     "Outputs" : {
