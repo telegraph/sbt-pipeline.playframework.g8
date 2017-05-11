@@ -7,7 +7,7 @@ object Dependencies {
   val AkkaHttpVersion = "10.0.5"
   val CucumberVersion = "1.2.5"
   val LogBackVersion  = "1.2.3"
-  val TmgUtils        = "1.0.0-b28"
+  val TmgUtils        = "1.0.0-b+"
   val Json4sVersion   = "3.5.1"
   val PlayVersion     = "2.5.14"
   val JacksonVersion  = "2.7.8"
