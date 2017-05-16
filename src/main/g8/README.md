@@ -6,8 +6,8 @@
 - [ ] Does it have a pipeline in jenkins? 
 - [ ] Does it imply any kind of data migration? If so what are the steps for that?
 - [ ] Is the Documentation been created, if needed?
-- [ ] Does it has appropiate logs?
-- [ ] Does it has appropiate alerts?
+- [ ] Does it has appropriate logs?
+- [ ] Does it has appropriate alerts?
 
 $name$
 -------
