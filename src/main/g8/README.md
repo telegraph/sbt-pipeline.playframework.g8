@@ -1,4 +1,4 @@
-#### Definition of Service Done:
+# Definition of Service Done:
 - [ ] Confluence platforms has entry for the service? [Platforms](https://confluence.aws.telegraph.co.uk/display/PLAT/Platforms+Home)
 - [ ] Swagger entry points
 - [ ] Is there appropriate test coverage?
