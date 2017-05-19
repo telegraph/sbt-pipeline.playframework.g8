@@ -77,7 +77,7 @@ lock("${env.PROJECT_NAME}"){
 
         stage("PreProd Tests"){
            sh """
-              Running It Tests
+              echo "Running It Tests"
             """
         }
 

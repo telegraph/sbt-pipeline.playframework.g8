@@ -18,9 +18,6 @@ lazy val CommonSettings = Seq(
 
   // Test & Coverage
   coverageExcludedPackages := ".*Reverse.*;.*Routes.*",
-  concurrentRestrictions                := Seq(
-    Tags.limit(Tags.Test, 1)
-  ),
   publishMavenStyle := false
 )
 
