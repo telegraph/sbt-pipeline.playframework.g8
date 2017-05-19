@@ -48,12 +48,6 @@ lock("${env.PROJECT_NAME}"){
           )
         }
 
-        stage("Functional Tests"){
-            sh """
-                echo "Running Functional Tests"
-            """
-        }
-
         stage("Assembly & Publish"){
             sh """
                 ${sbtFolder}/sbt clean playUpdateSecret assembly
@@ -64,6 +58,12 @@ lock("${env.PROJECT_NAME}"){
                 docker.build("${projectName}:${pipeline_version}", "--build-arg APP_NAME=${projectName} --build-arg APP_VERSION=${pipeline_version} .")
                     .push()
             }
+        }
+
+        stage("Functional Tests"){
+            sh """
+                echo "Running Functional Tests"
+            """
         }
 
         stage("PreProd Deploy"){
