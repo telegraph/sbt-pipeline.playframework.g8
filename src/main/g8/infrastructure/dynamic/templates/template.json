@@ -63,10 +63,19 @@
     },
     "Resources" : {
         "ECSCluster":{
-            "Type": "Custom::StackDepdendency",
+            "Type": "Custom::StackDependency",
             "Properties": {
                 "ServiceToken": { "Fn::Join": ["",[
                     "arn:aws:lambda:", {"Ref":"AWS::Region"}, ":", {"Ref":"AWS::AccountId"}, ":function:aws-resources-stack-dependencies"
+                ]]},
+                "StackName": { "Ref": "EnvECSClusterStack" }
+            }
+        },
+        "ECSLoadBalancer":{
+            "Type": "Custom::StackDependency",
+            "Properties": {
+                "ServiceToken": { "Fn::Join": ["",[
+                    "arn:aws:lambda:", {"Ref":"AWS::Region"}, ":", {"Ref":"AWS::AccountId"}, ":function:aws-resources-load-balancer-priority"
                 ]]},
                 "StackName": { "Ref": "EnvECSClusterStack" }
             }
@@ -91,7 +100,7 @@
                     "VpcId"                       : {"Ref": "VpcId"},
                     "ECSClusterPhysicalId"        : {"Fn::GetAtt":["ECSCluster", "EnvironmentECSClusterID"]},
                     "ECSLoadBalancerListener"     : {"Fn::GetAtt":["ECSCluster", "EnvironmentECSLoadBalancerListenerID"]},
-                    "LoadBalancerListenerPriority": "13",
+                    "LoadBalancerListenerPriority": {"Fn::GetAtt":["ECSLoadBalancer", "NextPriorityAvailable"]},
                     "ContainerPort"               : "9000",
                     "DeploymentConfigMaxPercent"  : "200",
                     "DeploymentConfigMinPercent"  : "50",
@@ -188,6 +197,9 @@
         },
         "VpcId" : {
             "Value" : {"Ref" : "VpcId" }
+        },
+        "LoadBalancerListenerPriority":{
+            "Value" : {"Fn::GetAtt":["ECSLoadBalancer", "NextPriorityAvailable"]}
         }
     }
 }
