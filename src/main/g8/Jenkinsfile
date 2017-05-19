@@ -40,18 +40,23 @@ lock("${env.PROJECT_NAME}"){
             ]
         }
 
-        stage("Build & Test"){
+        stage("Build & UTest"){
           sendNotification("Build", "${env.SLACK_PLATFORMS_CI}", "#platforms_ci",
             """
               ${sbtFolder}/sbt clean test
-              ${sbtFolder}/sbt clean playUpdateSecret assembly
             """
           )
         }
 
-        stage("Publish"){
+        stage("Function Tests"){
             sh """
-                echo "APP_NAME=${projectName} APP_VERSION=${pipeline_version}"
+                echo "Running Functional Tests"
+            """
+        }
+
+        stage("Assembly Publish"){
+            sh """
+                ${sbtFolder}/sbt clean playUpdateSecret assembly
                 ${sbtFolder}/sbt publish
             """
             docker.withRegistry('https://385050320367.dkr.ecr.eu-west-1.amazonaws.com', 'ecr:eu-west-1:28a5a1f9-f236-4c52-a0ed-7da786958e97') {
