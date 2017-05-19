@@ -40,7 +40,7 @@ lock("${env.PROJECT_NAME}"){
             ]
         }
 
-        stage("Build & UTest"){
+        stage("Build & Unit Tests"){
           sendNotification("Build", "${env.SLACK_PLATFORMS_CI}", "#platforms_ci",
             """
               ${sbtFolder}/sbt clean test
@@ -54,7 +54,7 @@ lock("${env.PROJECT_NAME}"){
             """
         }
 
-        stage("Assembly Publish"){
+        stage("Assembly & Publish"){
             sh """
                 ${sbtFolder}/sbt clean playUpdateSecret assembly
                 ${sbtFolder}/sbt publish
