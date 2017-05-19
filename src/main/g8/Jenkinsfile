@@ -49,12 +49,6 @@ lock("${env.PROJECT_NAME}"){
           )
         }
 
-        stage("Static Update"){
-            sh """
-                ${sbtFolder}/sbt static:stackSetup
-            """
-        }
-
         stage("Publish"){
             sh """
                 echo "APP_NAME=${projectName} APP_VERSION=${pipeline_version}"
