@@ -14,7 +14,7 @@ node {
 
     def sbtFolder        = "${tool name: 'sbt-0.13.13', type: 'org.jvnet.hudson.plugins.SbtPluginBuilder$SbtInstallation'}/bin"
     def projectName      = "${env.PROJECT_NAME}"
-    def github_token     = "0598dad35d170d53f1d4bff07e009e1bdef35856"
+    def github_token     = "${GITHUB_TOKEN}"
     def pipeline_version = "1.0.0.${env.BUILD_NUMBER}"
     def github_commit    = ""
 
