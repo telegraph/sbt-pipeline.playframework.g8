@@ -48,24 +48,27 @@ lock("${env.PROJECT_NAME}"){
           )
         }
 
-        stage("Assembly & Publish"){
+        stage("Assembly"){
             sh """
                 ${sbtFolder}/sbt clean playUpdateSecret assembly
+            """
+            docker.build("${projectName}:${pipeline_version}", "--build-arg APP_NAME=${projectName} --build-arg APP_VERSION=${pipeline_version} .")
+        }
+
+        stage("Component Tests"){
+            sh """
+                echo "Running Component Tests"
+            """
+        }
+
+        stage("Publish"){
+            sh """
                 ${sbtFolder}/sbt publish
             """
             docker.withRegistry('https://385050320367.dkr.ecr.eu-west-1.amazonaws.com', 'ecr:eu-west-1:28a5a1f9-f236-4c52-a0ed-7da786958e97') {
-                sh "echo APP_NAME=${projectName} APP_VERSION=${pipeline_version}"
-                docker.build("${projectName}:${pipeline_version}", "--build-arg APP_NAME=${projectName} --build-arg APP_VERSION=${pipeline_version} .")
-                    .push()
+                docker.image("${projectName}:${pipeline_version}").push()
             }
         }
-
-        stage("Functional Tests"){
-            sh """
-                echo "Running Functional Tests"
-            """
-        }
-
         stage("PreProd Deploy"){
           sendNotification("Deploy PreProd", "${env.SLACK_PLATFORMS_RELEASES}", "#platforms_releases",
             """
