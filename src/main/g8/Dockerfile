@@ -1,4 +1,4 @@
-FROM dockering/oracle-java8
+FROM anapsix/alpine-java
 
 ARG APP_NAME
 ARG APP_VERSION
