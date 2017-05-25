@@ -13,11 +13,14 @@ def sendNotification( action, token, channel, shellAction ){
 lock("${env.PROJECT_NAME}"){
     node {
 
-        def sbtFolder        = "${tool name: 'sbt-0.13.13', type: 'org.jvnet.hudson.plugins.SbtPluginBuilder$SbtInstallation'}/bin"
-        def projectName      = "${env.PROJECT_NAME}"
-        def github_token     = "${env.GITHUB_TOKEN}"
-        def pipeline_version = "1.0.0-b${env.BUILD_NUMBER}"
-        def github_commit    = ""
+        def sbtFolder          = "${tool name: 'sbt-0.13.13', type: 'org.jvnet.hudson.plugins.SbtPluginBuilder$SbtInstallation'}/bin"
+        def projectName        = "${env.PROJECT_NAME}"
+        def github_token       = "${env.GITHUB_TOKEN}"
+        def jenkins_github_id  = "${env.JENKINS_GITHUB_CREDENTIALS_ID}"
+        def docker_account     = "${env.AWS_ECR_DOCKER_ACCOUNT}"
+        def docker_registry    = "${env.AWS_ECR_DOCKER_REGISTRY}"
+        def pipeline_version   = "1.0.0-b${env.BUILD_NUMBER}"
+        def github_commit      = ""
         
         stage("Checkout"){
             echo "git checkout"
@@ -34,7 +37,7 @@ lock("${env.PROJECT_NAME}"){
                 ]],
                 submoduleCfg: [],
                 userRemoteConfigs: [[
-                    credentialsId: 'fe000f7c-4de6-45c7-9097-d1fba24f3cb5',
+                    credentialsId: "${jenkins_github_id}",
                     url: "git@github.com:telegraph/${projectName}.git"
                 ]]
             ]
@@ -55,7 +58,7 @@ lock("${env.PROJECT_NAME}"){
             docker.build("${projectName}:${pipeline_version}", "--build-arg APP_NAME=${projectName} --build-arg APP_VERSION=${pipeline_version} .")
         }
 
-        stage("Component Tests"){
+        stage("Functional Tests"){
             sh """
                 echo "Running Component Tests"
             """
@@ -65,7 +68,7 @@ lock("${env.PROJECT_NAME}"){
             sh """
                 ${sbtFolder}/sbt publish
             """
-            docker.withRegistry('https://385050320367.dkr.ecr.eu-west-1.amazonaws.com', 'ecr:eu-west-1:28a5a1f9-f236-4c52-a0ed-7da786958e97') {
+            docker.withRegistry("${docker_account}", "${docker_registry}") {
                 docker.image("${projectName}:${pipeline_version}").push()
             }
         }
