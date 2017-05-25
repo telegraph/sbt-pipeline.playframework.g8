@@ -1,0 +1,205 @@
+{
+    "AWSTemplateFormatVersion" : "2010-09-09",
+    "Description" : "AWS CloudFormation to launch a service.",
+    "Parameters" : {
+        "ApplicationName": {
+            "Description": "The application name",
+            "Type": "String"
+        },
+        "DeploymentEnv": {
+            "Description": "The environment to refer to this component stack",
+            "Type"       : "String"
+        },
+        "CloudFormationBucket":{
+            "Description": "CloudFormation Bucket ",
+            "Type": "String"
+        },
+        "CloudFormationKey":{
+            "Description": "CloudFormation Key",
+            "Type"       : "String"
+        },
+        "CloudFormationCommonKey":{
+            "Description": "CloudFormation Key",
+            "Type"       : "String",
+            "Default"    : "common/latest"
+        },
+        "BuildVersion": {
+            "Description": "The version of the build",
+            "Type"       : "String"
+        },
+        "NotificationTaskCpuAllocation": {
+            "Description": "CPU allocation of notification the task",
+            "Type"       : "String",
+            "Default"    : "512"
+        },
+        "NotificationTaskMemoryAllocation": {
+            "Description": "Memory allocation of notification the task",
+            "Type"       : "String",
+            "Default"    : "2048"
+        },
+        "NotificationDesiredCount": {
+            "Description": "Desired count of the notification task",
+            "Type"       : "String",
+            "Default"    : "2"
+        },
+        "EnvECSClusterStack":{
+            "Description": "ECS Cluster Repository",
+            "Type"       : "String"
+        },
+        "VpcId": {
+            "Description": "Application VPC",
+            "Type"       : "String"
+        },
+        "EmailingList": {
+            "Description": "Emailing List",
+            "Type"       : "String",
+            "Default"    : "arn:aws:sns:eu-west-1:385050320367:platforms-test"
+        },
+        "DeregistrationDelay": {
+            "Description": "The amount time for Load Balancing to wait before changing the state of a deregistering target from draining to unused",
+            "Type": "String",
+            "Default": "120"
+        }
+    },
+    "Resources" : {
+        "ECSCluster":{
+            "Type": "Custom::StackDependency",
+            "Properties": {
+                "ServiceToken": { "Fn::Join": ["",[
+                    "arn:aws:lambda:", {"Ref":"AWS::Region"}, ":", {"Ref":"AWS::AccountId"}, ":function:aws-resources-stack-dependencies"
+                ]]},
+                "StackName": { "Ref": "EnvECSClusterStack" }
+            }
+        },
+        "ECSLoadBalancer":{
+            "Type": "Custom::StackDependency",
+            "Properties": {
+                "ServiceToken": { "Fn::Join": ["",[
+                    "arn:aws:lambda:", {"Ref":"AWS::Region"}, ":", {"Ref":"AWS::AccountId"}, ":function:aws-resources-load-balancer-priority"
+                ]]},
+                "StackName": { "Ref": "EnvECSClusterStack" }
+            }
+        },
+        "ECSService": {
+            "Type": "AWS::CloudFormation::Stack",
+            "Properties": {
+                "TemplateURL"  : {"Fn::Sub": ["https://s3-\${AWS::Region}.amazonaws.com/\${bucket}/\${bucketKey}/template-common-ecs-service.json", {
+                    "bucket"   : {"Ref": "CloudFormationBucket"},
+                    "bucketKey": {"Ref": "CloudFormationCommonKey"}
+                }]},
+                "Parameters": {
+                    "ApplicationName"             : {"Ref": "ApplicationName"},
+                    "DeploymentEnv"               : {"Ref": "DeploymentEnv"},
+                    "BuildImage"                  : {"Ref": "ApplicationName"},
+                    "BuildVersion"                : {"Ref": "BuildVersion"},
+                    "TaskCpuAllocation"           : {"Ref": "NotificationTaskCpuAllocation"},
+                    "TaskMemoryAllocation"        : {"Ref": "NotificationTaskMemoryAllocation"},
+                    "DesiredCount"                : {"Ref": "NotificationDesiredCount"},
+                    "DeregistrationDelay"         : {"Ref": "DeregistrationDelay"},
+
+                    "VpcId"                       : {"Ref": "VpcId"},
+                    "ECSClusterPhysicalId"        : {"Fn::GetAtt":["ECSCluster", "EnvironmentECSClusterID"]},
+                    "ECSLoadBalancerListener"     : {"Fn::GetAtt":["ECSCluster", "EnvironmentECSLoadBalancerListenerID"]},
+                    "LoadBalancerListenerPriority": {"Fn::GetAtt":["ECSLoadBalancer", "NextPriorityAvailable"]},
+                    "ContainerPort"               : "9000",
+                    "DeploymentConfigMaxPercent"  : "200",
+                    "DeploymentConfigMinPercent"  : "50",
+                    "TaskRoleArn"                 : {"Ref":"ECSServiceTaskRole"}
+                },
+                "TimeoutInMinutes": "15"
+            },
+            "DependsOn": [
+                "ECSServiceTaskRole"
+            ]
+        },
+
+        "ECSServiceTaskRole"  :{
+            "Type": "AWS::IAM::Role",
+            "Properties":{
+                "RoleName" : {
+                    "Fn::Sub":["\${serviceName}-\${envName}-execution-role", {
+                        "serviceName": {"Ref": "ApplicationName"},
+                        "envName"    : {"Ref": "DeploymentEnv"}
+                    }]
+                },
+                "AssumeRolePolicyDocument": {
+                    "Version" : "2012-10-17",
+                    "Statement": {
+                        "Effect": "Allow",
+                        "Principal": {
+                            "Service": "ecs-tasks.amazonaws.com"
+                        },
+                        "Action": "sts:AssumeRole"
+                    }
+                }
+            }
+        },
+        "ECSServiceErrorMetric": {
+            "Type": "AWS::Logs::MetricFilter",
+            "Properties": {
+                "FilterPattern"         : "INFO",
+                "LogGroupName"          : {"Fn::GetAtt":["ECSService","Outputs.LogGroupName"]},
+                "MetricTransformations" : [{
+                    "MetricValue"       : "1",
+                    "MetricNamespace"   : {"Ref":"ApplicationName"},
+                    "MetricName"        : "error"
+                }]
+            },
+            "DependsOn":["ECSService"]
+        },
+        "ECSServiceAlarmError":{
+            "Type"       : "AWS::CloudWatch::Alarm",
+            "Properties" : {
+                "AlarmActions"       : [{"Ref":"EmailingList"}],
+                "AlarmDescription"   : "Send error msg to the slack channel",
+                "AlarmName"          : { "Fn::Sub":["\${serviceName}-\${envName}-alarm", {
+                    "serviceName": {"Ref": "ApplicationName"},
+                    "envName"    : {"Ref": "DeploymentEnv"}
+                }]},
+                "ComparisonOperator" : "GreaterThanThreshold",
+                "EvaluationPeriods"  : 1,
+                "MetricName"         : "error",
+                "Namespace"          : {"Ref":"ApplicationName"},
+                "Period"             : 60,
+                "Statistic"          : "Sum",
+                "Threshold"          : 1
+            },
+            "DependsOn":["ECSServiceErrorMetric"]
+        }
+    },
+    "Outputs" : {
+        "ApplicationName" : {
+            "Value" : {"Ref" : "ApplicationName" }
+        },
+        "DeploymentEnv" : {
+            "Value" : {"Ref" : "DeploymentEnv" }
+        },
+        "CloudFormationBucket" : {
+            "Value" : {"Ref" : "CloudFormationBucket" }
+        },
+        "CloudFormationKey" : {
+            "Value" : {"Ref" : "CloudFormationKey" }
+        },
+        "CloudFormationCommonKey" : {
+            "Value" : {"Ref" : "CloudFormationCommonKey" }
+        },
+        "BuildVersion" : {
+            "Value" : {"Ref" : "BuildVersion" }
+        },
+        "NotificationTaskMemoryAllocation" : {
+            "Value" : {"Ref" : "NotificationTaskMemoryAllocation" }
+        },
+        "NotificationDesiredCount" : {
+            "Value" : {"Ref" : "NotificationDesiredCount" }
+        },
+        "EnvECSClusterStack" : {
+            "Value" : {"Ref" : "EnvECSClusterStack" }
+        },
+        "VpcId" : {
+            "Value" : {"Ref" : "VpcId" }
+        },
+        "LoadBalancerListenerPriority":{
+            "Value" : {"Fn::GetAtt":["ECSLoadBalancer", "NextPriorityAvailable"]}
+        }
+    }
+}

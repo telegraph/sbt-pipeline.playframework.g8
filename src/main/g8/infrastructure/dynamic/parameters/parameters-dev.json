@@ -1,0 +1,34 @@
+[
+    {
+        "ParameterKey"  : "ApplicationName",
+        "ParameterValue": "$name;format="hyphen,lower"$"
+    },
+    {
+        "ParameterKey"  : "DeploymentEnv",
+        "ParameterValue": "dev"
+    },
+    {
+        "ParameterKey"  : "CloudFormationBucket",
+        "ParameterValue": "artifacts-repo"
+    },
+    {
+        "ParameterKey"  : "CloudFormationKey",
+        "ParameterValue": "$name;format="hyphen,lower"$"
+    },
+    {
+        "ParameterKey"  : "CloudFormationCommonKey",
+        "ParameterValue": "common/latest"
+    },
+    {
+        "ParameterKey"  : "EnvECSClusterStack",
+        "ParameterValue": "cluster-preprod"
+    },
+    {
+        "ParameterKey": "VpcId",
+        "ParameterValue": "vpc-65ca1c01"
+    },
+    {
+        "ParameterKey": "BuildVersion",
+        "ParameterValue": "1.0.0"
+    }
+]

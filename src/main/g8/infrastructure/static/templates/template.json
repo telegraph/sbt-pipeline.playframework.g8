@@ -1,0 +1,41 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "CloudFormation template to build the static stack",
+    "Parameters": {
+        "ApplicationName": {
+            "Description": "The application name",
+            "Type": "String"
+        },
+        "CloudFormationBucket": {
+            "Description": "CloudFormation Bucket ",
+            "Type"       : "String"
+        },
+        "CloudFormationCommonKey": {
+            "Description": "CloudFormation Key",
+            "Type"       : "String",
+            "Default"    : "common/latest"
+        },
+        "AwsAccountArnList": {
+            "Description": "List of AWS Account Arns that have permission to push or pull from ECR eg. arn:aws:iam::$"$"${AccountID}:root",
+            "Type": "String"
+        }
+    },
+    "Resources": {
+        "ECR": {
+            "Type": "AWS::CloudFormation::Stack",
+            "Properties": {
+                "TemplateURL": {
+                    "Fn::Sub": ["https://s3-$"$"${AWS::Region}.amazonaws.com/$"$"${bucket}/$"$"${bucketKey}/template-common-ecr.json", {
+                        "bucket"   : {"Ref": "CloudFormationBucket"},
+                        "bucketKey": {"Ref": "CloudFormationCommonKey"}
+                    }
+                    ]
+                },
+                "Parameters": {
+                    "ApplicationName":   {"Ref": "ApplicationName"},
+                    "AwsAccountArnList": {"Ref": "AwsAccountArnList"}
+                }
+            }
+        }
+    }
+}

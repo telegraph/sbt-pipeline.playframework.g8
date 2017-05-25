@@ -1,0 +1,14 @@
+[
+    {
+        "ParameterKey"  : "ApplicationName",
+        "ParameterValue": "$name;format="hyphen,lower"$"
+    },
+    {
+        "ParameterKey"  : "CloudFormationBucket",
+        "ParameterValue": "artifacts-repo"
+    },
+    {
+        "ParameterKey"  : "AwsAccountArnList",
+        "ParameterValue": "arn:aws:iam::385050320367:root, arn:aws:iam::553346130293:root, arn:aws:iam::267208445930:root"
+    }
+]
