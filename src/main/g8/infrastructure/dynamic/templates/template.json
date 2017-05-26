@@ -59,6 +59,11 @@
             "Description": "The amount time for Load Balancing to wait before changing the state of a deregistering target from draining to unused",
             "Type": "String",
             "Default": "120"
+        },
+        "EcrAwsAccountID": {
+            "Description": "AWS Account ID of Docker ECR repo",
+            "Type": "String",
+            "Default": "385050320367"
         }
     },
     "Resources" : {
@@ -104,7 +109,8 @@
                     "ContainerPort"               : "9000",
                     "DeploymentConfigMaxPercent"  : "200",
                     "DeploymentConfigMinPercent"  : "50",
-                    "TaskRoleArn"                 : {"Ref":"ECSServiceTaskRole"}
+                    "TaskRoleArn"                 : {"Ref":"ECSServiceTaskRole"},
+                    "AccountId"                   : {"Ref":"EcrAwsAccountID"}
                 },
                 "TimeoutInMinutes": "15"
             },
