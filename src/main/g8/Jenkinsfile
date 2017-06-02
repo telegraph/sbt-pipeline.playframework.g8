@@ -85,6 +85,17 @@ lock("${env.PROJECT_NAME}"){
               echo "Running It Tests"
             """
         }
+        
+        stage("Code Freeze Check"){
+            echo "Is code freeze: ${env.CODE_FREEZE}"
+            if (env.CODE_FREEZE == 'true') {
+                echo "Freeze!"
+                currentBuild.result = 'ABORTED'
+                error('There is a code freeze')
+            } else {
+                echo "NO Freeze - Deploying to prod!"
+            }
+        }
 
         stage("Prod Deploy"){
           sendNotification("Deploy Prod", "${env.SLACK_PLATFORMS_RELEASES}", "#platforms_releases",
