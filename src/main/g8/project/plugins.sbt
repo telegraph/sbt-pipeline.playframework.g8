@@ -1,7 +1,7 @@
 
 resolvers += "mvn-artifacts" atS3 "s3://mvn-artifacts/release"
 
-addSbtPlugin("com.typesafe.play"  % "sbt-plugin"           % "2.5.14")
+addSbtPlugin("com.typesafe.play"  % "sbt-plugin"           % "2.6.0")
 addSbtPlugin("uk.co.telegraph"    % "sbt-pipeline-plugin"  % "1.1.0-b+")
 addSbtPlugin("uk.co.telegraph"    % "sbt-wiremock"         % "1.0.0-b+")
 addSbtPlugin("com.frugalmechanic" % "fm-sbt-s3-resolver"   % "0.9.0")

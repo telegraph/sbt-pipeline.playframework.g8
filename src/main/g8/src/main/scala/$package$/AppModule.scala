@@ -1,7 +1,7 @@
 package $package$
 
 import akka.actor.ActorSystem
-import akka.stream.ActorMaterializer
+import akka.stream.Materializer
 import com.google.inject.{AbstractModule, Provides}
 import com.google.inject.Key.get
 import com.google.inject.multibindings.Multibinder.newSetBinder
@@ -16,12 +16,8 @@ class AppModule extends AbstractModule{
     genericClients.addBinding().to(classOf[SimpleClient])
   }
 
-  @Provides
-  def materializerProvider(implicit system:ActorSystem):ActorMaterializer =
-    ActorMaterializer()
-  
   //TODO: Create different client providers here!
   @Provides
-  def simpleClientProvider(implicit system:ActorSystem, materializer:ActorMaterializer):SimpleClient =
+  def simpleClientProvider(implicit system:ActorSystem, materializer:Materializer):SimpleClient =
     SimpleClient()
 }
