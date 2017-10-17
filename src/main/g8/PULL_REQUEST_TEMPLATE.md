@@ -14,9 +14,9 @@ _To indicate context that the reviews must now_
 
 #### Definition of Done:
 - [ ] Is there appropriate test coverage?
-- [ ] Does the confluence need to be updated? https://jira.aws.telegraph.co.uk/browse/PLAT-926
+- [ ] Does the confluence need to be updated?
 - [ ] Does this add new dependencies? If so, have the healthchecks been updated?
-- [ ] Any Deployment changes we need to be aware of? New infrastructure? Changes to existing components? Service will be moved to Jenkins https://jira.aws.telegraph.co.uk/browse/PLAT-862
+- [ ] Any Deployment changes we need to be aware of? New infrastructure? Changes to existing components?
 - [ ] Is there appropriate logging included?
 - [ ] Does it imply any kind of data migration? If so what are the steps for that?
 - [ ] Is the Documentation been updated, if needed?
