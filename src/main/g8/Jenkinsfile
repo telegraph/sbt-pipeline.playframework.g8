@@ -1,4 +1,3 @@
-
 def sendNotification( action, token, channel, shellAction ){
   try {
     slackSend message: "${action} Started - ${env.JOB_NAME} ${env.BUILD_NUMBER} (<${env.BUILD_URL}|Open>)", token: token, channel: channel, teamDomain: "telegraph", baseUrl: "https://hooks.slack.com/services/", color: "warning"
@@ -9,6 +8,11 @@ def sendNotification( action, token, channel, shellAction ){
   }
   slackSend message: "${action} Finished - ${env.JOB_NAME} ${env.BUILD_NUMBER} (<${env.BUILD_URL}|Open>)", token: token, channel: channel, teamDomain: "telegraph", baseUrl: "https://hooks.slack.com/services/", color: "good"
 }
+
+def sendMessage(message, channel, color = "good") {
+    slackSend message: "$message", token: "${env.SLACK_PLATFORMS_RELEASES}", channel: channel, teamDomain: "telegraph", baseUrl: "https://hooks.slack.com/services/", color: color
+}
+
 
 ansiColor('xterm') {
     lock("${env.PROJECT_NAME}"){
@@ -87,7 +91,7 @@ ansiColor('xterm') {
                 """
             }
 
-            stage("Code Freeze Check"){
+            stage("Validate prod deploy") {
                 echo "Is code freeze: ${env.CODE_FREEZE}"
                 if (env.CODE_FREEZE == 'true') {
                     echo "Freeze!"
@@ -95,6 +99,27 @@ ansiColor('xterm') {
                     error('There is a code freeze')
                 } else {
                     echo "NO Freeze - Deploying to prod!"
+                }
+
+                timeout(time: 20, unit: 'MINUTES') {
+
+                    current_commit = sh(returnStdout: true, script: 'git show-ref --tags --head --hash| head -n1').trim()
+                    previous_release_tag = sh(returnStdout: true, script: 'git show-ref --tags --head --hash| tail -n1').trim()
+                    tickets = sh(returnStdout: true, script: """git log --full-diff $previous_release_tag..$current_commit | grep -o 'PLAT-[0-9]*'| sort -u | uniq |awk '{print "https://jira.aws.telegraph.co.uk/browse/"\$1}'""").trim()
+                    authors = sh(returnStdout: true, script: """git log --full-diff $previous_release_tag..$current_commit | grep -o 'Author: .*' | sed -e 's/Author: //g' | sort -u | uniq""").trim()
+
+                    sendMessage(
+                            "The *$projectName* pipeline is waiting to be approved for prod deployment:\n${env.BUILD_URL}/input" +
+                                    "\nTicket in this release:\n$tickets" +
+                                    "\nCoded by:\n$authors",
+                            "#platforms_releases"
+                    )
+                    approver = input(message: 'Approve deployment?', submitterParameter: 'username_approval')
+                    date = new Date()
+                    sendMessage(
+                            "The *$projectName* build: ${env.BUILD_URL} has been approved by https://jenkins-prod.api-platforms.telegraph.co.uk/user/${approver}/ at ${date}",
+                            "#platforms_releases"
+                    )
                 }
             }
 

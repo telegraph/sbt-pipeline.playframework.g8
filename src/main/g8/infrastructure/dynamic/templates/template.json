@@ -143,7 +143,7 @@
         "ECSServiceErrorMetric": {
             "Type": "AWS::Logs::MetricFilter",
             "Properties": {
-                "FilterPattern"         : "INFO",
+              "FilterPattern"           : "{$.logLevel=\"ERROR\"}",
                 "LogGroupName"          : {"Fn::GetAtt":["ECSService","Outputs.LogGroupName"]},
                 "MetricTransformations" : [{
                     "MetricValue"       : "1",
