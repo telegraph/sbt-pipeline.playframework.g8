@@ -1,13 +1,13 @@
 #### Label: ####
 _[bug, improvement, feature]_
 #### What's this PR do?
-_Sort description of the purpose of the changes in the pull request_
+
 #### Where should the reviewer start?
-_Guide for the reviewer or where to start_
+
 #### What tests were added?
-_To indicate if any test was added_
+
 #### Any background context you want to provide?
-_To indicate context that the reviews must now_
+
 #### Are there other tickets linked to this?
 
 #### Outstanding questions?

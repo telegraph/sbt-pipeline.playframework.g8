@@ -101,7 +101,7 @@ ansiColor('xterm') {
                     echo "NO Freeze - Deploying to prod!"
                 }
 
-                timeout(time: 20, unit: 'MINUTES') {
+                timeout(time: 60, unit: 'MINUTES') {
 
                     current_commit = sh(returnStdout: true, script: 'git show-ref --tags --head --hash| head -n1').trim()
                     previous_release_tag = sh(returnStdout: true, script: 'git show-ref --tags --head --hash| tail -n1').trim()
