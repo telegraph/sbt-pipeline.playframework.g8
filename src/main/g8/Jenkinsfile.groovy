@@ -104,7 +104,7 @@ ansiColor('xterm') {
                 timeout(time: 60, unit: 'MINUTES') {
 
                     current_commit = sh(returnStdout: true, script: 'git show-ref --tags --head --hash| head -n1').trim()
-                    previous_release_tag = sh(returnStdout: true, script: 'git show-ref --tags --head --hash| sort -V -k2,2 | tail -n1').trim()
+                    previous_release_tag = sh(returnStdout: true, script: 'git show-ref --head --hash| sort -V -k2,2 | tail -n1 | cut -d " " -f1').trim()
                     tickets = sh(returnStdout: true, script: """git log --full-diff $previous_release_tag..$current_commit | grep -o 'PLAT-[0-9]*'| sort -u | uniq |awk '{print "https://jira.aws.telegraph.co.uk/browse/"\$1}'""").trim()
                     authors = sh(returnStdout: true, script: """git log --full-diff $previous_release_tag..$current_commit | grep -o 'Author: .*' | sed -e 's/Author: //g' | sort -u | uniq""").trim()
 
