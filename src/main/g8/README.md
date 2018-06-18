@@ -4,6 +4,7 @@
 - [ ] Is there appropriate test coverage?
 - [ ] Infrastructure created?
 - [ ] Does it have a pipeline in jenkins? 
+- [ ] Does it have a codacy project? Does it have the badges in the readme?
 - [ ] Does it imply any kind of data migration? If so what are the steps for that?
 - [ ] Is the Documentation been created, if needed?
 - [ ] Does it has appropriate logs?
