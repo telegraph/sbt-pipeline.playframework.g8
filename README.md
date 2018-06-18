@@ -2,6 +2,7 @@
 # SBT Pipeline Playframework.g8 
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0) [![Build Status](https://jenkins-prod.api-platforms.telegraph.co.uk/job/Pipeline/job/sbt-pipeline-playframework.g8%20Pipeline/badge/icon)](https://jenkins-prod.api-platforms.telegraph.co.uk/job/Pipeline/job/sbt-pipeline-playframework.g8%20Pipeline/)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/78073f9289ba4d3e9e736fef909820dc)](https://www.codacy.com/app/telegraph/sbt-pipeline.playframework.g8?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=telegraph/sbt-pipeline.playframework.g8&amp;utm_campaign=Badge_Grade)
 
 This project contains an SBT Template that contains the Pipeline template for all projects.
 The main objectives of this template are:
